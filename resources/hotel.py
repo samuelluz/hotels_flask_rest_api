@@ -30,43 +30,41 @@ class Hoteis(Resource):
         return {'hoteis': hoteis}
 
 class Hotel(Resource):
-    argumentos = reqparse.RequestParser()
-    argumentos.add_argument('nome')
-    argumentos.add_argument('estrelas')
-    argumentos.add_argument('diaria')
-    argumentos.add_argument('cidade')
-
-    def fing_hotel(self, hotel_id):
-        for hotel in hoteis:
-            if hotel['hotel_id']==hotel_id:
-                return hotel
+    atributos = reqparse.RequestParser()
+    atributos.add_argument('nome')
+    atributos.add_argument('estrelas')
+    atributos.add_argument('diaria')
+    atributos.add_argument('cidade')
 
     def get(self, hotel_id):
-        hotel = self.fing_hotel(hotel_id)
+        hotel = HotelModel.fing_hotel(hotel_id)
         if hotel:
-            return hotel, 200
+            return hotel.json(), 200
         return {'message':'Hotel not found.'}, 404 #not found
 
     def post(self, hotel_id):
-        dados = self.argumentos.parse_args()
-        hotel_objeto = HotelModel(hotel_id, **dados)
-        novo_hotel = hotel_objeto.json()
-        hoteis.append(novo_hotel)
-        return novo_hotel, 200
+        if HotelModel.find_hotel(hotel_id):
+            return {'message':"Hotel id '{}' already exists.".format(hotel_id)}, 400 # bad request
+        dados = self.atributos.parse_args()
+        hotel = HotelModel(hotel_id, **dados)
+        hotel.save_hotel()
+        return hotel.json(),
 
 
     def put(self, hotel_id):
-        dados = self.argumentos.parse_args()
-        hotel_objeto = HotelModel(hotel_id, **dados)
-        novo_hotel = hotel_objeto.json()
-        hotel = self.fing_hotel(hotel_id)
-        if hotel:
-            hotel.update(novo_hotel)
-            return novo_hotel, 200
-        hoteis.append(novo_hotel)
-        return novo_hotel, 201 # criated
+        dados = self.atributos.parse_args()
+        hotel_encontrado = HotelModel.fing_hotel(hotel_id)
+        if hotel_encontrado:
+            hotel_encontrado.update_hotel(**dados)
+            hotel_encontrado.save_hotel()
+            return hotel_encontrado.json(), 200
+        novo_hotel = HotelModel(hotel_id, **dados)
+        novo_hotel.save_hotel()
+        return novo_hotel.json(), 201 # criated
 
     def delete(self, hotel_id):
-        global hoteis
-        hoteis = [hotel for hotel in hoteis if hotel['hotel_id'] != hotel_id]
-        return {'message': 'Hotel deleted'}
+        hotel = HotelModel.find_hotel(hotel_id)
+        if hotel:
+            hotel.delete_hotel()
+            return {'message': 'Hotel deleted.'}
+        return {'message':'Hotel not found.'}, 404
