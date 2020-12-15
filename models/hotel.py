@@ -4,7 +4,7 @@ class HotelModel(banco.Model):
 
     hotel_id = banco.Column(banco.String, primary_key=True)
     nome = banco.Column(banco.String(80))
-    strelas = banco.Column(banco.Float(precision=1))
+    estrelas = banco.Column(banco.Float(precision=1))
     diaria =  banco.Column(banco.Float(precision=2))
     cidade = banco.Column(banco.String(40))
 
