@@ -23,6 +23,13 @@ class UserModel(banco.Model):
             return user
         return None
 
+    @classmethod
+    def find_by_login(cls, login):
+        user = cls.query.filter_by(login=login).first()
+        if user:
+            return user
+        return None
+
     def save_user(self):
         banco.session.add(self)
         banco.session.commit()
@@ -30,3 +37,4 @@ class UserModel(banco.Model):
     def delete_user(self):
         banco.session.delete(self)
         banco.session.commit()
+
